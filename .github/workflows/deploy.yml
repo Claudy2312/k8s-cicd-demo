@@ -23,22 +23,13 @@ jobs:
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build Docker image
+      - name: Build and push Docker image
         run: |
           docker build -t demo-app ./app
           docker tag demo-app:latest ${{ secrets.ECR_REPOSITORY }}:latest
-
-      - name: Push Docker image to ECR
-        run: |
           docker push ${{ secrets.ECR_REPOSITORY }}:latest
 
       - name: Update Kubernetes deployment
         run: |
-          mkdir -p $HOME/.kube
-          aws eks update-kubeconfig \
-            --name demo-cluster \
-            --region ${{ secrets.AWS_REGION }} \
-            --kubeconfig $HOME/.kube/config
-          kubectl set image deployment/demo-app-deployment \
-            demo-app=${{ secrets.ECR_REPOSITORY }}:latest \
-            --kubeconfig $HOME/.kube/config
+          aws eks update-kubeconfig --name demo-cluster --region ${{ secrets.AWS_REGION }}
+          kubectl set image deployment/demo-app-deployment demo-app=${{ secrets.ECR_REPOSITORY }}:latest
