@@ -28,11 +28,12 @@ jobs:
 
       - name: Build and push Docker image
         run: |
+          IMAGE_TAG=${GITHUB_SHA}  # Use commit SHA as tag
           docker build -t demo-app ./app
-          docker tag demo-app:latest ${{ secrets.ECR_REPOSITORY }}:latest
-          docker push ${{ secrets.ECR_REPOSITORY }}:latest
+          docker tag demo-app:latest ${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG
+          docker push ${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG
 
       - name: Deploy to EKS
         run: |
           aws eks update-kubeconfig --name demo-cluster --region eu-west-1
-          kubectl set image deployment/demo-app-deployment demo-app=${{ secrets.ECR_REPOSITORY }}:latest
+          kubectl set image deployment/demo-app-deployment demo-app=${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG
