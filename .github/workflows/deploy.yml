@@ -9,15 +9,19 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
+    permissions:
+      id-token: write
+      contents: read
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Configure AWS credentials via OIDC role
+      - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: arn:aws:iam::954976326790:role/GitHubActionsRole
-          aws-region: ${{ secrets.AWS_REGION }}
+          role-to-assume: arn:aws:iam::954976326790:role/gihubactionrole
+          aws-region: eu-west-1
 
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v1
@@ -28,7 +32,7 @@ jobs:
           docker tag demo-app:latest ${{ secrets.ECR_REPOSITORY }}:latest
           docker push ${{ secrets.ECR_REPOSITORY }}:latest
 
-      - name: Update Kubernetes deployment
+      - name: Deploy to EKS
         run: |
-          aws eks update-kubeconfig --name demo-cluster --region ${{ secrets.AWS_REGION }}
+          aws eks update-kubeconfig --name demo-cluster --region eu-west-1
           kubectl set image deployment/demo-app-deployment demo-app=${{ secrets.ECR_REPOSITORY }}:latest
