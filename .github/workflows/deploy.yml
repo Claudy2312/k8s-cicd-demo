@@ -1,0 +1,38 @@
+name: CI/CD EKS Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build Docker image
+        run: |
+          docker build -t demo-app ./app
+          docker tag demo-app:latest ${{ secrets.ECR_REPOSITORY }}:latest
+
+      - name: Push Docker image to ECR
+        run: |
+          docker push ${{ secrets.ECR_REPOSITORY }}:latest
+
+      - name: Update Kubernetes deployment
+        run: |
+          aws eks update-kubeconfig --name demo-cluster --region ${{ secrets.AWS_REGION }}
+          kubectl set image deployment/demo-app-deployment demo-app=${{ secrets.ECR_REPOSITORY }}:latest
