@@ -34,5 +34,11 @@ jobs:
 
       - name: Update Kubernetes deployment
         run: |
-          aws eks update-kubeconfig --name demo-cluster --region ${{ secrets.AWS_REGION }}
-          kubectl set image deployment/demo-app-deployment demo-app=${{ secrets.ECR_REPOSITORY }}:latest
+          mkdir -p $HOME/.kube
+          aws eks update-kubeconfig \
+            --name demo-cluster \
+            --region ${{ secrets.AWS_REGION }} \
+            --kubeconfig $HOME/.kube/config
+          kubectl set image deployment/demo-app-deployment \
+            demo-app=${{ secrets.ECR_REPOSITORY }}:latest \
+            --kubeconfig $HOME/.kube/config
