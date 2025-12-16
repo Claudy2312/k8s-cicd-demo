@@ -15,6 +15,6 @@ spec:
       containers:
       - name: demo-app
         image: 954976326790.dkr.ecr.eu-west-1.amazonaws.com/demo-app:latest
-        imagePullPolicy: Always
+        imagePullPolicy: Always   # <--- add this
         ports:
         - containerPort: 3000
